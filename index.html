@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boxi Gacha — Mistik Güncelleme (Market Update)</title>
+<link href="https://fonts.googleapis.com/css2?family=Annie+Use+Your+Telescope&display=swap" rel="stylesheet">
+
+<!-- canvas-confetti CDN (güzel konfeti) -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<style>
+:root{
+  --bg1:#06102a; --bg2:#0b163f;
+  --accent:#4aa8ff; --accent-light:#6ecbff; --muted:#cfe8ff;
+
+  --r-siradan: #9aa3b2;   /* grey */
+  --r-siradisi: #22c55e;  /* green */
+  --r-nadir: #3b82f6;     /* blue */
+  --r-epik: #8b5cf6;      /* purple */
+  --r-efsanevi: #f59e0b;  /* yellow */
+  --r-mistik: #ff3b3b;    /* red */
+}
+
+/* base */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Annie Use Your Telescope", cursive;
+  background: radial-gradient(800px 300px at 5% 5%, rgba(106,155,255,0.06), transparent), linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:#f0f7ff; min-height:100vh; padding:20px; display:flex; justify-content:center;
+}
+.app{ width:100%; max-width:1250px; display:grid; grid-template-columns:360px 1fr; gap:18px; }
+@media(max-width:980px){ .app{ grid-template-columns:1fr } }
+
+/* panels */
+.panel{
+  border-radius:14px; padding:16px; background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  border:1px solid rgba(255,255,255,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* left */
+.left .top { display:flex; gap:8px; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.btn {
+  background:linear-gradient(90deg,var(--accent),var(--accent-light)); border:none; color:#04223a; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:800;
+  box-shadow:0 8px 18px rgba(74,168,255,0.12);
+}
+.btn.secondary{ background:#0f213f; color:var(--muted); box-shadow:none; border:1px solid rgba(255,255,255,0.03); }
+
+/* box */
+.box{
+  width:190px; height:190px; margin:0 auto; border-radius:24px; display:grid; place-items:center; font-size:72px;
+  background: linear-gradient(180deg,#5fb1ff,#2f88ff); border:4px solid rgba(255,255,255,0.06);
+  box-shadow:0 12px 40px rgba(47,136,255,0.25), inset 0 6px 20px rgba(255,255,255,0.06); transition:transform .18s, filter .18s; cursor:pointer;
+}
+.box:hover{ transform:translateY(-6px) scale(1.02); }
+.box.cool{ filter:grayscale(.7) brightness(.8); cursor:not-allowed; transform:none; }
+
+/* box machine effects */
+.box.double-effect {
+  animation: doublePulse 1.5s infinite;
+  box-shadow:0 12px 40px rgba(47,136,255,0.5), inset 0 6px 20px rgba(255,255,255,0.1), 0 0 20px rgba(124, 252, 0, 0.6);
+}
+
+@keyframes doublePulse {
+  0% { box-shadow:0 12px 40px rgba(47,136,255,0.5), inset 0 6px 20px rgba(255,255,255,0.1), 0 0 10px rgba(124, 252, 0, 0.4); }
+  50% { box-shadow:0 12px 40px rgba(47,136,255,0.7), inset 0 6px 20px rgba(255,255,255,0.15), 0 0 25px rgba(124, 252, 0, 0.8); }
+  100% { box-shadow:0 12px 40px rgba(47,136,255,0.5), inset 0 6px 20px rgba(255,255,255,0.1), 0 0 10px rgba(124, 252, 0, 0.4); }
+}
+
+/* stats */
+.stats{ margin-top:12px; display:flex; flex-direction:column; gap:8px; color:var(--muted); }
+.stats .big{ font-size:20px; font-weight:900; color:var(--accent-light); }
+
+/* shop */
+.shop .item{ display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:10px; margin-bottom:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent); border:1px solid rgba(255,255,255,0.02); }
+.shop .item .meta{ display:flex; gap:8px; align-items:center; }
+.shop .item .meta .icon{ width:44px; height:44px; display:grid; place-items:center; border-radius:8px; background:rgba(255,255,255,0.03); font-size:20px; }
+
+/* right */
+.right .header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.groups{ max-height:76vh; overflow:auto; padding-right:6px; display:flex; flex-direction:column; gap:12px; }
+
+/* group & cards */
+.group{ padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.02); background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
+.group h4{ margin:0 0 8px 0; color:var(--muted); font-size:14px; }
+.cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
+.card{ padding:12px; border-radius:10px; background:linear-gradient(135deg,#091A35,#0b2138); border:1px solid rgba(255,255,255,0.02); position:relative; cursor:pointer; transition:transform .14s; }
+.card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(2,6,23,0.6); }
+.card .name{ font-weight:900; font-size:18px; display:flex; gap:8px; align-items:center; }
+.card .name .qty{ font-size:14px; color:var(--muted); font-weight:800; opacity:.9; }
+.card .rarity{ margin-top:6px; font-size:13px; color:var(--muted); }
+.card .badge{ position:absolute; right:10px; top:10px; background:rgba(255,255,255,0.03); padding:4px 8px; border-radius:999px; font-weight:900; font-size:13px; }
+
+/* gradient text for rarities (no box) */
+.grad-siradan{ background: linear-gradient(90deg,#bfc8cf,#9aa3b2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.grad-siradisi{ background: linear-gradient(90deg,#a7f3d0,#22c55e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.grad-nadir{ background: linear-gradient(90deg,#bfdbfe,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.grad-epik{ background: linear-gradient(90deg,#e9d5ff,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.grad-efsanevi{ background: linear-gradient(90deg,#ffedd5,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.grad-mistik{ background: linear-gradient(90deg,#ff7b7b,#ff3b3b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:900; }
+
+/* dna rainbow */
+@keyframes rainbow { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
+.dna-rainbow{ background: linear-gradient(90deg, #ff6b6b, #f6d365, #8be9fd, #c77dff, #ffd36b); background-size:300% 300%; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation: rainbow 4s linear infinite; font-weight:900; }
+
+/* drop notification */
+.drop-notify {
+  position: fixed; left:50%; top:12%; transform:translateX(-50%); z-index:9999;
+  background:linear-gradient(180deg, rgba(10,18,40,0.95), rgba(8,12,30,0.95));
+  border-radius:12px; padding:18px 22px; border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 18px 40px rgba(0,0,0,0.8); color:#eaf6ff; min-width:380px; text-align:center;
+  opacity:0; transition:opacity .18s, transform .18s;
+}
+.drop-notify.show{ opacity:1; transform:translateX(-50%) translateY(6px); }
+.drop-notify .title{ font-size:30px; font-weight:900; margin-bottom:6px; }
+.drop-notify .sub{ font-size:15px; color:var(--muted); }
+
+/* screen shake for Mistik */
+@keyframes shake {
+  0%{ transform: translateX(0) }
+  20%{ transform: translateX(-8px) }
+  40%{ transform: translateX(8px) }
+  60%{ transform: translateX(-6px) }
+  80%{ transform: translateX(6px) }
+  100%{ transform: translateX(0) }
+}
+.body-shake{ animation: shake .6s ease; }
+
+/* modal */
+.modal-back{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:2000; }
+.modal{ width:min(920px,95%); max-height:80vh; overflow:auto; background:linear-gradient(180deg,#071233,#0b1b45); padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.04); }
+.modal h3{ margin:0 0 10px 0; color:var(--accent-light); }
+
+/* special inventory for machine loot */
+.special-inventory { 
+  display: flex; 
+  gap: 10px; 
+  margin-top: 15px; 
+  flex-wrap: wrap; 
+  justify-content: center;
+}
+
+.special-item {
+  padding: 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a2b4d, #253b66);
+  border: 1px solid rgba(255,255,255,0.05);
+  text-align: center;
+  min-width: 80px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.special-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.special-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* machine loot opening animation */
+@keyframes lootOpen {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.loot-opening {
+  animation: lootOpen 0.5s ease;
+}
+
+/* small */
+.small{ font-size:13px; color:var(--muted); }
+.footer{ margin-top:10px; font-size:12px; color:#9fbbe8; opacity:.9; text-align:center; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT -->
+  <div class="panel left">
+    <div class="top">
+      <button class="btn" id="saveBtn">💾 Kaydet (.bmb)</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn secondary" id="loadBtn">📂 Yükle</button>
+        <input type="file" id="fileInput" accept=".bmb" style="display:none">
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-bottom:10px;">
+      <div id="box" class="box" title="Tıkla!">📦</div>
+      <div class="stats">
+        <div class="small">Boxi Bakiyesi</div>
+        <div class="big" id="boxi">0</div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+          <div><div class="small">Toplam Açılan</div><div id="opened" class="small">0</div></div>
+          <div><div class="small">Etkin</div><div id="effects" class="small">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Special inventory for machine loot -->
+    <div id="specialInventory" class="special-inventory" style="display:none;">
+      <div class="special-item" data-type="bag" onclick="openSpecialLoot('bag')">
+        <div>👜</div>
+        <div class="small" id="bagCount">0x</div>
+        <div class="small">Çanta</div>
+      </div>
+      <div class="special-item" data-type="gift" onclick="openSpecialLoot('gift')">
+        <div>🎁</div>
+        <div class="small" id="giftCount">0x</div>
+        <div class="small">Hediye</div>
+      </div>
+      <div class="special-item" data-type="chest" onclick="openSpecialLoot('chest')">
+        <div>🧰</div>
+        <div class="small" id="chestCount">0x</div>
+        <div class="small">Kasa</div>
+      </div>
+    </div>
+
+    <div class="shop">
+      <h3 style="margin-top:0">🏪 Dükkan</h3>
+
+      <div class="item">
+        <div class="meta"><div class="icon">🍀</div><div><strong>Şans Yoncası (10dk)</strong><div class="small">10 dakika boyunca nadir karakter şansını iki katına çıkarır</div></div></div>
+        <div style="text-align:right"><div style="font-weight:900">40</div><button onclick="buy('double')" class="btn">Satın Al</button></div>
+      </div>
+
+      <div class="item">
+        <div class="meta"><div class="icon">🧬</div><div><strong>DNA</strong><div class="small">Hiperşarjlı karakterleri DNA ile evrimleştirerek özel görünüm kazandırır</div></div></div>
+        <div style="text-align:right"><div style="font-weight:900">800</div><button onclick="buy('dna')" class="btn">Satın Al</button></div>
+      </div>
+
+      <div class="item">
+        <div class="meta"><div class="icon">🎰</div><div><strong>Kutu Makinesi</strong><div class="small">Otomatik olarak özel lootlar üretir (Çanta, Hediye, Kasa)</div></div></div>
+        <div style="text-align:right"><div style="font-weight:900">800</div><button onclick="buy('machine')" class="btn">Satın Al</button></div>
+      </div>
+
+    </div>
+
+    <div class="footer">Not: .bmb dosyası SHA-256 ile doğrulanır; değiştirilmiş dosya yüklenmez.</div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right">
+    <div class="header">
+      <h3 style="margin:0">🎒 Envanter</h3>
+      <div class="small">Her karakterin 30 haneli ID'si var.</div>
+    </div>
+
+    <div class="groups" id="groups"></div>
+  </div>
+</div>
+
+<!-- drop notify -->
+<div id="dropNotify" class="drop-notify" aria-hidden="true">
+  <div class="title" id="dropTitle">Bobi</div>
+  <div class="sub" id="dropSub">Efsanevi • ⚡Hiperşarjlı</div>
+</div>
+
+<!-- modal -->
+<div class="modal-back" id="modalBack"><div class="modal"><h3>🧬 DNA Kullan — Bir karakter seç (Sadece Hiper)</h3><div id="modalGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; margin-top:10px;"></div><div style="margin-top:12px; text-align:right;"><button onclick="closeModal()" class="btn secondary">Kapat</button></div></div></div>
+
+<script>
+/* ====== CONFIG & NEW POOLS ====== */
+const POOLS = {
+  "Sıradan": ["Reni","Gorabadin","Hurosi","Dirora","Finn","Labatta","Qsa"],
+  "Sıradışı": ["Horhor","Zovi","Jonardinyo","Trotrola","Hengs"],
+  "Nadir": ["Snare","Gole","Porta","Derim","Meno","Frios","Shen"],
+  "Epik": ["Croco","Blore","Orx","Quro","Saber","Cowbro"],
+  "Efsanevi": ["Bobi","Lome","Frozone","Megoladon","Atum"],
+  "Mistik": ["Norova","Zen"]
+};
+const RARITY_ORDER = ["Mistik","Efsanevi","Epik","Nadir","Sıradışı","Sıradan"];
+
+/* weights: Boş highest (yaygından fazla), mistik extremely rare */
+const BASE_WEIGHTS = {
+  "Boş": 40,
+  "Sıradan": 30,
+  "Sıradışı": 12,
+  "Nadir": 6,
+  "Epik": 3,
+  "Efsanevi": 1.0,
+  "Mistik": 0.1
+};
+
+const DOUBLE_WEIGHTS = {
+  "Boş": 30,
+  "Sıradan": 25,
+  "Sıradışı": 15,
+  "Nadir": 10,
+  "Epik": 6,
+  "Efsanevi": 2.0,
+  "Mistik": 0.2
+};
+
+const HYPER_BASE = 0.20;
+const PRICES = { double:40, dna:800, machine:800 };
+const DOUBLE_DURATION_MS = 10*60*1000;
+const BOX_COOLDOWN = 1900; // 1.9 saniye
+
+// Kutu Makinesi zamanlama ayarları
+const MACHINE_INTERVALS = {
+  bag: 30000,    // 30 saniyede bir çanta
+  gift: 60000,   // 1 dakikada bir hediye
+  chest: 180000  // 3 dakikada bir kasa
+};
+
+/* ====== STATE ====== */
+let INVENTORY = [];
+let BOXI = 0;
+let TOTAL_OPENED = 0;
+
+let nextDoubleExpires = 0;
+let dnaAvailable = 0;
+let canOpen = true;
+
+// Kutu Makinesi state
+let machineActive = false;
+let machineLoot = {
+  bag: 0,
+  gift: 0,
+  chest: 0
+};
+let machineIntervalId = null;
+
+/* DOM refs */
+const boxEl = document.getElementById('box');
+const boxiEl = document.getElementById('boxi');
+const openedEl = document.getElementById('opened');
+const effectsEl = document.getElementById('effects');
+const groupsEl = document.getElementById('groups');
+const dropNotifyEl = document.getElementById('dropNotify');
+const dropTitleEl = document.getElementById('dropTitle');
+const dropSubEl = document.getElementById('dropSub');
+const modalBack = document.getElementById('modalBack');
+const modalGrid = document.getElementById('modalGrid');
+const fileInput = document.getElementById('fileInput');
+const specialInventory = document.getElementById('specialInventory');
+const bagCountEl = document.getElementById('bagCount');
+const giftCountEl = document.getElementById('giftCount');
+const chestCountEl = document.getElementById('chestCount');
+
+/* ====== UTILS ====== */
+function randDigits(n){ let s=''; for(let i=0;i<n;i++) s += Math.floor(Math.random()*10); return s; }
+function genId(){ return randDigits(30); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function now(){ return Date.now(); }
+function clone(x){ return JSON.parse(JSON.stringify(x)); }
+
+function weightedPick(weights){
+  const entries = Object.entries(weights);
+  const total = entries.reduce((a,[,w])=>a+w,0);
+  let r = Math.random()*total;
+  for(const [k,w] of entries){
+    r -= w;
+    if(r <= 0) return k;
+  }
+  return entries[entries.length-1][0];
+}
+
+/* ====== AUDIO & CELEBRATION ====== */
+const audioCtx = (typeof AudioContext !== 'undefined') ? new (window.AudioContext || window.webkitAudioContext)() : null;
+
+function playMelodyFor(rarity){
+  if(!audioCtx) return;
+  const nowT = audioCtx.currentTime;
+  let seq;
+  switch(rarity){
+    case 'Sıradan': seq = [[440,0.06]]; break;
+    case 'Sıradışı': seq = [[523.25,0.08],[659.25,0.08]]; break;
+    case 'Nadir': seq = [[392,0.09],[523.25,0.09],[659.25,0.18]]; break;
+    case 'Epik': seq = [[523.25,0.08],[698.46,0.08],[880,0.14],[1046.5,0.22]]; break;
+    case 'Efsanevi': seq = [[880,0.07],[1046.5,0.07],[1318.5,0.08],[1760,0.12]]; break;
+    case 'Mistik': seq = [[880,0.06],[1318.5,0.06],[1760,0.06],[2093,0.08],[2637,0.4]]; break;
+    default: seq = [[440,0.06]]; break;
+  }
+  let t = audioCtx.currentTime;
+  for(const [freq,dur] of seq){
+    if(freq > 0){
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.14, t + 0.01);
+      gain.gain.linearRampToValueAtTime(0.0, t + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + dur + 0.02);
+    }
+    t += dur + 0.02;
+  }
+}
+
+function confettiFor(rarity){
+  switch(rarity){
+    case 'Sıradan': return { colors: ['#bfc8cf','#9aa3b2'], particleCount: 18, spread:40, scalar:0.6 };
+    case 'Sıradışı': return { colors: ['#a7f3d0','#22c55e'], particleCount: 40, spread:70, scalar:0.9 };
+    case 'Nadir': return { colors: ['#bfdbfe','#3b82f6'], particleCount: 90, spread:100, scalar:1.0 };
+    case 'Epik': return { colors: ['#e9d5ff','#8b5cf6'], particleCount: 180, spread:130, scalar:1.2 };
+    case 'Efsanevi': return { colors: ['#fce38a','#f59e0b','#ffd36b'], particleCount: 340, spread:160, scalar:1.4, rainbow:false };
+    case 'Mistik': return { colors: ['#ff7b7b','#ff3b3b','#ff9a9a','#ffd36b'], particleCount: 600, spread:180, scalar:1.6, rainbow:true };
+    default: return { colors: ['#cfd8e3'], particleCount: 12, spread:40, scalar:0.5 };
+  }
+}
+
+function fireConfetti(rarity){
+  const cfg = confettiFor(rarity);
+  if(cfg.rainbow){
+    const colors = cfg.colors;
+    for(let i=0;i<8;i++){
+      confetti({
+        particleCount: Math.floor(cfg.particleCount/8),
+        angle: 60 + Math.random()*60,
+        spread: cfg.spread,
+        startVelocity: 40 + i*5,
+        gravity: 0.6,
+        scalar: cfg.scalar,
+        origin: { x: Math.random()*0.6 + 0.2, y: 0.2 + Math.random()*0.05 },
+        colors: [ colors[i % colors.length] ]
+      });
+    }
+  } else {
+    confetti({
+      particleCount: cfg.particleCount,
+      spread: cfg.spread,
+      startVelocity: 30,
+      gravity: 0.6,
+      scalar: cfg.scalar,
+      origin: { x: 0.5, y: 0.2 },
+      colors: cfg.colors
+    });
+  }
+}
+
+// Özel loot açılış efekti
+function fireLootConfetti(type){
+  let colors, count;
+  switch(type){
+    case 'bag': 
+      colors = ['#4ecdc4', '#00a8ff', '#007bff'];
+      count = 80;
+      break;
+    case 'gift':
+      colors = ['#ff6b6b', '#ff9a9a', '#ffd36b'];
+      count = 120;
+      break;
+    case 'chest':
+      colors = ['#f9ca24', '#f0932b', '#eb4d4b'];
+      count = 200;
+      break;
+  }
+  
+  confetti({
+    particleCount: count,
+    spread: 100,
+    startVelocity: 25,
+    gravity: 0.6,
+    scalar: 1.2,
+    origin: { x: 0.5, y: 0.3 },
+    colors: colors
+  });
+}
+
+/* extra dramatic Mistik visual */
+function doMistikFlash(){
+  fireConfetti('Mistik');
+  document.body.classList.add('body-shake');
+  setTimeout(()=> document.body.classList.remove('body-shake'), 700);
+}
+
+/* unified celebration */
+function celebrate(rarity, isHyper=false, isDna=false){
+  try{ playMelodyFor(rarity); } catch(e){console.warn(e);} 
+  if(rarity === 'Mistik'){
+    doMistikFlash();
+    fireConfetti('Mistik'); setTimeout(()=> fireConfetti('Mistik'), 260); setTimeout(()=> fireConfetti('Efsanevi'), 520);
+  } else if(isHyper && rarity !== 'Mistik'){
+    fireConfetti(rarity);
+    setTimeout(()=> fireConfetti(rarity), 220);
+  } else {
+    fireConfetti(rarity);
+  }
+}
+
+/* ====== DROP NOTIFICATION & SEQUENCE (show before add to inventory) ====== */
+function showDropNotification(drop){
+  if(drop.type === 'empty'){
+    dropTitleEl.textContent = 'Boş';
+    dropTitleEl.className = '';
+    dropSubEl.textContent = 'Hiçbir şey çıkmadı';
+    try{ playMelodyFor('Sıradan'); }catch{}
+    fireConfetti('Sıradan');
+  } else {
+    const it = drop.item;
+    dropTitleEl.textContent = it.name + (it.hyper ? ' ⚡' : '');
+    dropTitleEl.className = '';
+    if(it.dnaEvolved) dropTitleEl.classList.add('dna-rainbow');
+    else if(it.hyper) dropTitleEl.classList.add(gradClass(it.rarity));
+    dropSubEl.textContent = `${it.rarity}${it.hyper ? ' • Hiper' : ''}${it.dnaEvolved ? ' • DNA' : ''}`;
+
+    if(it.rarity === 'Sıradan'){ setTimeout(()=> celebrate('Sıradan', it.hyper, it.dnaEvolved), 120); }
+    else if(it.rarity === 'Sıradışı'){ setTimeout(()=> celebrate('Sıradışı', it.hyper, it.dnaEvolved), 100); }
+    else if(it.rarity === 'Nadir'){ setTimeout(()=> celebrate('Nadir', it.hyper, it.dnaEvolved), 80); }
+    else if(it.rarity === 'Epik'){ setTimeout(()=> celebrate('Epik', it.hyper, it.dnaEvolved), 60); }
+    else if(it.rarity === 'Efsanevi'){ celebrate('Efsanevi', it.hyper, it.dnaEvolved); }
+    else if(it.rarity === 'Mistik'){ celebrate('Mistik', it.hyper, it.dnaEvolved); }
+  }
+  dropNotifyEl.classList.add('show');
+  const hideAfter = drop.type === 'empty' ? 1000 : (drop.item.rarity === 'Mistik' ? 3500 : 2000);
+  setTimeout(()=> dropNotifyEl.classList.remove('show'), hideAfter);
+}
+
+/* ====== GACHA / ROLL ====== */
+function rollOneInternal(){
+  const weights = nextDoubleExpires > now() ? clone(DOUBLE_WEIGHTS) : clone(BASE_WEIGHTS);
+  const picked = weightedPick(weights);
+  if(picked === 'Boş') return { type:'empty' };
+  const pool = POOLS[picked] || [];
+  const name = pick(pool);
+  let isHyper = Math.random() < HYPER_BASE;
+  if(picked === 'Mistik' && isHyper){
+    isHyper = Math.random() < 0.25;
+  }
+  const item = { id: genId(), name, rarity: picked, hyper: !!isHyper, dnaEvolved: false };
+  return { type:'char', item };
+}
+
+/* open box: show notifications BEFORE adding to inventory */
+async function openBox(){
+  if(!canOpen) return;
+  canOpen = false; boxEl.classList.add('cool');
+  setTimeout(()=>{ canOpen = true; boxEl.classList.remove('cool'); }, BOX_COOLDOWN);
+
+  const res = rollOneInternal();
+  showDropNotification(res);
+  await new Promise(r=>setTimeout(r, 700));
+  
+  if(res.type === 'empty'){
+    INVENTORY.push({ id: genId(), name:'__BOŞ__', rarity:'Boş', hyper:false, dnaEvolved:false });
+  } else {
+    INVENTORY.push(res.item);
+    BOXI += 1;
+  }
+  TOTAL_OPENED += 1;
+  saveLocal(); updateUI();
+}
+
+/* ====== SPECIAL LOOT FUNCTIONS ====== */
+function openSpecialLoot(type){
+  if(machineLoot[type] <= 0) return;
+  
+  const item = document.querySelector(`.special-item[data-type="${type}"]`);
+  item.classList.add('loot-opening');
+  setTimeout(() => item.classList.remove('loot-opening'), 500);
+  
+  machineLoot[type]--;
+  let dropsToDo = 0;
+  
+  switch(type){
+    case 'bag': dropsToDo = 5; break;
+    case 'gift': dropsToDo = 10; break;
+    case 'chest': dropsToDo = 15; break;
+  }
+  
+  fireLootConfetti(type);
+  
+  // Özel lootları aç
+  setTimeout(async () => {
+    for(let i=0;i<dropsToDo;i++){
+      const res = rollOneInternal();
+      showDropNotification(res);
+      await new Promise(r=>setTimeout(r, 500));
+      
+      if(res.type === 'empty'){
+        INVENTORY.push({ id: genId(), name:'__BOŞ__', rarity:'Boş', hyper:false, dnaEvolved:false });
+      } else {
+        INVENTORY.push(res.item);
+        BOXI += 1;
+      }
+      TOTAL_OPENED += 1;
+    }
+    saveLocal(); updateUI();
+  }, 300);
+}
+
+function startMachine(){
+  if(machineIntervalId) clearInterval(machineIntervalId);
+  
+  machineIntervalId = setInterval(() => {
+    if(!machineActive) return;
+    
+    // Her interval'de tüm loot türlerini kontrol et
+    const nowTime = now();
+    
+    // Çanta - 30 saniyede bir
+    if(nowTime % MACHINE_INTERVALS.bag < 1000) {
+      machineLoot.bag += 1;
+      showMachineNotification('👜 Çanta', 'Kutu Makinesi yeni bir çanta üretti!');
+    }
+    
+    // Hediye - 1 dakikada bir
+    if(nowTime % MACHINE_INTERVALS.gift < 1000) {
+      machineLoot.gift += 1;
+      showMachineNotification('🎁 Hediye', 'Kutu Makinesi yeni bir hediye üretti!');
+    }
+    
+    // Kasa - 3 dakikada bir
+    if(nowTime % MACHINE_INTERVALS.chest < 1000) {
+      machineLoot.chest += 1;
+      showMachineNotification('🧰 Kasa', 'Kutu Makinesi yeni bir kasa üretti!');
+    }
+    
+    saveLocal(); updateUI();
+  }, 1000);
+}
+
+function showMachineNotification(title, message){
+  dropTitleEl.textContent = title;
+  dropTitleEl.className = '';
+  dropSubEl.textContent = message;
+  dropNotifyEl.classList.add('show');
+  setTimeout(()=> dropNotifyEl.classList.remove('show'), 2000);
+  
+  // Makineden loot geldiğinde küçük bir konfeti
+  confetti({
+    particleCount: 30,
+    spread: 70,
+    startVelocity: 20,
+    gravity: 0.5,
+    scalar: 0.8,
+    origin: { x: 0.5, y: 0.1 }
+  });
+}
+
+/* ====== SHOP & DNA ====== */
+function buy(type){
+  const price = PRICES[type];
+  if(BOXI < price){ alert('Boxi yetersiz.'); return; }
+  BOXI -= price;
+  if(type === 'double'){
+    nextDoubleExpires = Math.max(nextDoubleExpires, now()) + DOUBLE_DURATION_MS;
+    boxEl.classList.add('double-effect');
+    setTimeout(() => boxEl.classList.remove('double-effect'), DOUBLE_DURATION_MS);
+    alert('🍀 Şans Yoncası aktif! 10 dakika boyunca nadir karakter şansı iki katına çıktı.');
+  } else if(type === 'dna'){
+    dnaAvailable += 1;
+    alert('🧬 DNA alındı — seçim menüsü açılıyor. (Sadece hiper öğeler seçilebilir)');
+    openDnaModal();
+  } else if(type === 'machine'){
+    if(machineActive){ alert('Kutu Makinesi zaten aktif.'); }
+    else {
+      machineActive = true;
+      startMachine();
+      specialInventory.style.display = 'flex';
+      alert('🎰 Kutu Makinesi aktif! Artık düzenli olarak özel lootlar üretecek.');
+    }
+  }
+  saveLocal(); updateUI();
+}
+
+function openDnaModal(){
+  if(dnaAvailable <= 0){ alert('DNA yok.'); return; }
+  modalGrid.innerHTML = '';
+  const cands = INVENTORY.filter(i=> i.name !== '__BOŞ__' && !i.dnaEvolved && i.hyper === true);
+  if(cands.length === 0){ alert('Uygun (hiper) karakter yok.'); return; }
+  for(const it of cands){
+    const div = document.createElement('div'); div.className='sel-card'; div.style.padding='10px'; div.style.borderRadius='8px'; div.style.background='linear-gradient(90deg,#092041,#0e2746)'; div.style.cursor='pointer';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${it.name}</strong><div class="small">Rarity: ${it.rarity}${it.hyper? ' • Hiper':''}</div></div><div style="text-align:right"><div class="small">ID: ${it.id.slice(0,8)}...${it.id.slice(-6)}</div></div></div>`;
+    div.addEventListener('click', ()=>{
+      if(it.dnaEvolved){ alert('Zaten evrimleşmiş.'); return; }
+      it.dnaEvolved = true;
+      dnaAvailable = Math.max(0, dnaAvailable-1);
+      saveLocal(); updateUI(); closeModal(); alert(`${it.name} DNA ile evrimleşti!`);
+    });
+    modalGrid.appendChild(div);
+  }
+  modalBack.style.display = 'flex';
+}
+function closeModal(){ modalBack.style.display = 'none'; modalGrid.innerHTML = ''; }
+
+/* ====== SAVE / LOAD WITH SHA-256 (.bmb) ====== */
+async function sha256Hex(str){
+  const enc = new TextEncoder(); const data = enc.encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', data); const bytes = new Uint8Array(hash);
+  let hex=''; for(const b of bytes) hex += b.toString(16).padStart(2,'0'); return hex;
+}
+
+async function saveBmb(){
+  const payload = { 
+    inventory:INVENTORY, 
+    boxi:BOXI, 
+    totalOpened:TOTAL_OPENED, 
+    nextDoubleExpires, 
+    dnaAvailable, 
+    machineActive,
+    machineLoot,
+    meta:{ savedAt:new Date().toISOString(), ver:'1.6' } 
+  };
+  const payloadStr = JSON.stringify(payload);
+  const hash = await sha256Hex(payloadStr);
+  const wrapper = { payload, hash };
+  const blob = new Blob([JSON.stringify(wrapper, null, 2)], { type:'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'envanter.bmb'; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function loadBmbFile(file){
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const wrapper = JSON.parse(e.target.result);
+      if(!wrapper || !wrapper.payload || !wrapper.hash){ alert('Dosya biçimi geçersiz'); return; }
+      const payloadStr = JSON.stringify(wrapper.payload);
+      const computed = await sha256Hex(payloadStr);
+      if(computed !== wrapper.hash){ alert('Dosya doğrulaması başarısız — dosya değiştirilmiş olabilir.'); return; }
+      
+      for(const it of wrapper.payload.inventory){
+        if(!it.id || typeof it.id !== 'string' || !/^\d{30}$/.test(it.id)) it.id = genId();
+        if(!it.name) it.name = 'Unnamed';
+        if(!it.rarity) it.rarity = 'Sıradan';
+        it.hyper = !!it.hyper; it.dnaEvolved = !!it.dnaEvolved;
+      }
+      
+      INVENTORY = wrapper.payload.inventory;
+      BOXI = typeof wrapper.payload.boxi === 'number' ? wrapper.payload.boxi : 0;
+      TOTAL_OPENED = typeof wrapper.payload.totalOpened === 'number' ? wrapper.payload.totalOpened : 0;
+      nextDoubleExpires = typeof wrapper.payload.nextDoubleExpires === 'number' ? wrapper.payload.nextDoubleExpires : 0;
+      dnaAvailable = typeof wrapper.payload.dnaAvailable === 'number' ? wrapper.payload.dnaAvailable : 0;
+      machineActive = !!wrapper.payload.machineActive;
+      machineLoot = wrapper.payload.machineLoot || { bag: 0, gift: 0, chest: 0 };
+      
+      if(machineActive) {
+        startMachine();
+        specialInventory.style.display = 'flex';
+      }
+      
+      saveLocal(); updateUI(); alert('✅ .bmb başarıyla yüklendi ve doğrulandı.');
+    }catch(err){ console.error(err); alert('Dosya okunurken hata oluştu.'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ====== PERSISTENCE / UI ====== */
+function saveLocal(){
+  const payload = { 
+    inventory:INVENTORY, 
+    boxi:BOXI, 
+    totalOpened:TOTAL_OPENED, 
+    nextDoubleExpires, 
+    dnaAvailable, 
+    machineActive,
+    machineLoot,
+    meta:{ savedAt:new Date().toISOString(), ver:'1.6' } 
+  };
+  localStorage.setItem('boxi-game', JSON.stringify(payload));
+}
+
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem('boxi-game');
+    if(!raw) return;
+    const p = JSON.parse(raw);
+    INVENTORY = Array.isArray(p.inventory)? p.inventory : [];
+    BOXI = typeof p.boxi === 'number' ? p.boxi : 0;
+    TOTAL_OPENED = typeof p.totalOpened === 'number' ? p.totalOpened : 0;
+    nextDoubleExpires = typeof p.nextDoubleExpires === 'number' ? p.nextDoubleExpires : 0;
+    dnaAvailable = typeof p.dnaAvailable === 'number' ? p.dnaAvailable : 0;
+    machineActive = !!p.machineActive;
+    machineLoot = p.machineLoot || { bag: 0, gift: 0, chest: 0 };
+    
+    if(machineActive) {
+      startMachine();
+      specialInventory.style.display = 'flex';
+    }
+  }catch(e){ console.warn('loadLocal fail', e); }
+}
+
+function gradClass(r){
+  switch(r){
+    case 'Sıradan': return 'grad-siradan';
+    case 'Sıradışı': return 'grad-siradisi';
+    case 'Nadir': return 'grad-nadir';
+    case 'Epik': return 'grad-epik';
+    case 'Efsanevi': return 'grad-efsanevi';
+    case 'Mistik': return 'grad-mistik';
+    default: return '';
+  }
+}
+
+function msToTime(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const m = Math.floor(total/60).toString().padStart(2,'0'); 
+  const s = (total%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function updateUI(){
+  boxiEl.textContent = BOXI;
+  openedEl.textContent = TOTAL_OPENED;
+  const eff = [];
+  if(nextDoubleExpires > now()) eff.push(`🍀 Yonca (${msToTime(nextDoubleExpires - now())})`);
+  if(dnaAvailable > 0) eff.push(`🧬 x${dnaAvailable}`);
+  if(machineActive) eff.push(`🎰 Makine`);
+  effectsEl.textContent = eff.length ? eff.join(' • ') : '—';
+  
+  // Makine lootlarını güncelle
+  bagCountEl.textContent = `${machineLoot.bag}x`;
+  giftCountEl.textContent = `${machineLoot.gift}x`;
+  chestCountEl.textContent = `${machineLoot.chest}x`;
+  
+  // Loot butonlarını devre dışı bırak
+  document.querySelectorAll('.special-item').forEach(item => {
+    const type = item.dataset.type;
+    if(machineLoot[type] <= 0) {
+      item.classList.add('disabled');
+    } else {
+      item.classList.remove('disabled');
+    }
+  });
+  
+  renderGroups();
+}
+
+function renderGroups(){
+  groupsEl.innerHTML = '';
+  const empties = INVENTORY.filter(i=> i.name === '__BOŞ__').length;
+  if(empties > 0){
+    const div = document.createElement('div'); div.className='group';
+    div.innerHTML = `<h4>Boş (Toplam: ${empties})</h4><div class="cards"><div class="card"><div class="name">Boş <span class="qty">(${empties}x)</span></div><div class="rarity small">Hiçbir şey</div><div class="badge">${empties}x</div></div></div>`;
+    groupsEl.appendChild(div);
+  }
+  const byRarity = {};
+  for(const it of INVENTORY) if(it.name !== '__BOŞ__'){
+    byRarity[it.rarity] = byRarity[it.rarity] || {};
+    const key = `${it.name}||${it.hyper? 'H':'N'}||${it.dnaEvolved? 'D':'N'}`;
+    if(!byRarity[it.rarity][key]) byRarity[it.rarity][key] = { name:it.name, hyper:it.hyper, dna:it.dnaEvolved, count:0, sampleId:it.id };
+    byRarity[it.rarity][key].count++;
+  }
+  for(const r of RARITY_ORDER){
+    if(!byRarity[r]) continue;
+    const groupDiv = document.createElement('div'); groupDiv.className='group';
+    groupDiv.innerHTML = `<h4 class="${gradClass(r)}">${r}</h4><div class="cards"></div>`;
+    const cards = groupDiv.querySelector('.cards');
+    const arr = Object.values(byRarity[r]).sort((a,b)=> { if(a.hyper !== b.hyper) return a.hyper? -1:1; if(a.dna !== b.dna) return a.dna? -1:1; return b.count - a.count; });
+    for(const e of arr){
+      const c = document.createElement('div'); c.className='card';
+      const nameSpan = document.createElement('div'); nameSpan.className='name';
+      const title = document.createElement('span'); title.textContent = e.name + (e.hyper? ' ⚡' : '');
+      if(e.dna) title.classList.add('dna-rainbow'); else if(e.hyper) title.classList.add(gradClass(r));
+      nameSpan.appendChild(title);
+      const qtySpan = document.createElement('span'); qtySpan.className='qty'; qtySpan.textContent = `(${e.count}x)`; nameSpan.appendChild(qtySpan);
+      const rarityLine = document.createElement('div'); rarityLine.className='rarity'; rarityLine.textContent = `${r} ${e.hyper? '• Hiper' : ''} ${e.dna? '• DNA' : ''}`;
+      const badge = document.createElement('div'); badge.className='badge'; badge.textContent = `${e.count}x`;
+      c.appendChild(nameSpan); c.appendChild(rarityLine); c.appendChild(badge);
+      c.addEventListener('click', ()=> openDetail(e.name, r, e.hyper, e.dna));
+      cards.appendChild(c);
+    }
+    groupsEl.appendChild(groupDiv);
+  }
+}
+
+/* detail modal */
+function openDetail(name, rarity, hyperFlag, dnaFlag){
+  modalGrid.innerHTML = '';
+  const matches = INVENTORY.filter(i=> i.name === name && i.rarity === rarity && (!!i.hyper) === (!!hyperFlag) && (!!i.dnaEvolved) === (!!dnaFlag));
+  if(matches.length === 0) { alert('Öğe bulunamadı'); return; }
+  for(const it of matches){
+    const div = document.createElement('div'); div.className='sel-card'; div.style.padding='10px'; div.style.borderRadius='8px'; div.style.background='linear-gradient(90deg,#092041,#0e2746)'; div.style.cursor='pointer';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${it.name}</strong><div class="small">Rarity: ${it.rarity}${it.hyper? ' • Hiper':''}${it.dnaEvolved? ' • DNA':''}</div></div><div style="text-align:right"><div class="small">ID: ${it.id.slice(0,8)}...${it.id.slice(-6)}</div></div></div>`;
+    div.addEventListener('click', ()=>{
+      if(dnaAvailable > 0 && !it.dnaEvolved){
+        if(!it.hyper){ alert('DNA sadece hiperşarjlılara uygulanabilir!'); return; }
+        if(confirm(`${it.name} üzerinde DNA kullan?`)){ it.dnaEvolved = true; dnaAvailable = Math.max(0, dnaAvailable-1); saveLocal(); updateUI(); closeModal(); alert(`${it.name} DNA ile evrimleşti!`); }
+      } else {
+        alert(`ID: ${it.id}\n${it.name}\nRarity: ${it.rarity}\nHiper: ${it.hyper}\nDNA: ${it.dnaEvolved}`);
+      }
+    });
+    modalGrid.appendChild(div);
+  }
+  modalBack.style.display = 'flex';
+}
+function closeModal(){ modalBack.style.display = 'none'; modalGrid.innerHTML = ''; }
+
+/* ====== EVENTS & INIT ====== */
+boxEl.addEventListener('click', ()=> openBox());
+document.getElementById('saveBtn').addEventListener('click', ()=> saveBmb());
+document.getElementById('loadBtn').addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', function(){ const f = this.files[0]; if(f) loadBmbFile(f); });
+modalBack.addEventListener('click', (e)=> { if(e.target === modalBack) closeModal(); });
+document.addEventListener('keydown', (e)=> { if(e.key.toLowerCase() === 'd'){ if(dnaAvailable>0) openDnaModal(); } });
+
+setInterval(()=> updateUI(), 1000);
+
+/* load local on start */
+loadLocal(); updateUI();
+
+/* expose for debug if needed */
+window._boxiGame = { INVENTORY, saveBmb, loadBmbFile, genId, openDnaModal };
+
+</script>
+</body>
+</html>
